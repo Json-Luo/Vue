@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>index</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+    <div id="app">
+        <input type="text" v-model="name">
+        <h1>你好，{{ name }}!</h1>
+        <h2>{{ dom }}</h2>
+        <h3>{{ date }}</h3>
+        <h3>{{ date | formatDate }}</h3>
+        <h3><span v-html="link"></span></h3>
+        <h3>{{ link }} <span v-pre>{{ 这里的内容是不会被编译的 link }}</span></h3>
+        <h3>{{ number >= 10 ? number + '是两位数' : number + '是一位数' }}</h3>
+        <h3>将'{{ text }}'进行翻转操作获得'{{ text.split(',').reverse().join(',') }}'</h3>
+    </div>
+    <script>
+        /*
+         * 变量 app 就是一个 Vue 实例，几乎所有的代码就是一个对象，全部写入 Vue 的实例选项内
+         *
+         * el: 用于指定一个页面中已经存在的 DOM 元素来挂在 Vue 实例
+         *     1.它可以是一个 HTMLElement  例如. document.getElementById('app')
+         *     2.它也可以是一个 CSS 选择器  例如. '#app'
+         *
+         *     挂在成功后，可以通过 app.$el 来访问该元素
+         *
+         * data: 所有 Vue 数据的集合，建议所有对象实例使用的数据都声明在 data 内
+         *
+         * v-model: Vue 的一个指令，实现数据的双向绑定  例如. input 的 value 值改变会导致 vue 的 name 的值相应的改变，反之亦然
+         * v-html:  输出一段 html 文本，但是要注意 XSS 攻击
+         * v-pre:   不进行编译操作原样输出
+         *
+         * -------------------------------------------------------------------------------------------------------------
+         * Vue 实例的生命周期（生命周期钩子函数）：
+         * 1.created 实例创建完成之后调用，此阶段尚未挂载，$el 还不可用，此阶段基本用于初始化数据
+         * 2.mounted el 挂载到 DOM 实例上调用，一般第一个业务逻辑会写在此处
+         * 3.beforeDestroy 实例销毁之前调用，一般用于解绑一些使用 addEventListener 监听的事件等
+         *
+         * -------------------------------------------------------------------------------------------------------------
+         * {{ }} 1.最基本的插值方法，会自动的显示我们双向绑定的数据
+         *       2.可以在里面进行简单的表达式运算、三元运算等
+         *       3.只能使用 vue 白名单内的全局变量（例如：Math、Date 即 JS 的内置对象）不能使用自定义的全局变量
+         *       4.'|' 管道操作  可以过滤前面的数据  过滤函数写在 filters 中
+         *          串联：{{ message | filterA | filterB}}  接受参数：{{ message | filter('arg1', 'arg2') }}
+         *
+         */
+
+        let patchZero = function (number) {
+            return number < 10 ? '0' + number : number;
+        };
+
+        let app = new Vue({
+            el: '#app',
+            data: {
+                name: 'default',
+                dom: this.$el,
+                date: new Date(),
+                link: '<a href="#">这是一个 a 连接</a>',
+                number: 10,
+                text: '123,456',
+            },
+            filters: {
+                formatDate: function (value) {                   // 这里的参数 date 就是需要过滤的数据
+                    let date = new Date(value),
+                        year = date.getFullYear(),
+                        month = patchZero(date.getMonth() + 1),
+                        day = patchZero(date.getDate()),
+                        hour = patchZero(date.getHours()),
+                        minutes = patchZero(date.getMinutes()),
+                        seconds = patchZero(date.getSeconds());
+                    return year + '-' + month + '-' + day + ' ' + hour + ':' + minutes + ':' + seconds;
+                }
+            },
+            created: function () {
+                console.log('now: created, name: ' + this.$el); // $el == undefined
+            },
+            mounted: function () {
+                console.log('now: mounted, name: ' + this.$el); // $el == HTMLDivElement
+                let _this = this;                               // 保证作用域
+                this.timer = setInterval(function () {          // 定时器，一秒刷新一次 date 值
+                    _this.date = new Date();
+                }, 1000);
+            },
+            beforeDestroy: function () {
+                if (this.timer) {
+                    clearInterval(this.timer);                  // 在 vue 实例销毁之前清除定时器
+                }
+            }
+        })
+    </script>
+</body>
+</html>
