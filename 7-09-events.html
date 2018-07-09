@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-bind="http://www.w3.org/1999/xhtml" xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>指令与事件</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+    <div id="app">
+        <p v-if="show">显示文本</p>
+        <a v-bind:href="url">超链接</a>
+        <img v-bind:src="imgUrl" alt="图片开小差了">
+        <button v-on:click="handleDisable">{{ text }}文本</button>
+    </div>
+    <script>
+        /* 指令与事件 数据驱动 DOM 是 Vue 的核心理念，所以尽量用数据去驱动 DOM 而不是自己手动操作 DOM
+         * v-if: DOM 的存在与否取决于后面的 vue 变量
+         * v-bind: 单向绑定 值取决于 vue 变量 能动态的更新 HTML 元素上的属性（v-model 是双向绑定)
+         * v-on: 事件绑定
+         *
+         * 语法糖：
+         * v-bind:src === :src
+         * v-on:click === @click
+         */
+        let app = new Vue({
+            el: '#app',
+            data: {
+                show: true,
+                url: 'www.github.com',
+                imgUrl: 'img.jpg',
+                text: '隐藏'
+            },
+            methods: {
+                handleDisable: function () {
+                    this.show = !this.show;
+                    this.text = this.show ? '隐藏' : '显示';
+                },
+                init: function (text) {
+                    console.log(text);
+                }
+            },
+            mounted: function () {
+                this.init('初始化时调用');
+            }
+        });
+        app.init('在 Vue 实例外部调用');
+    </script>
+</body>
+</html>
