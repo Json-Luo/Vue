@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>计算属性</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+    <div id="app">
+        <p>{{ text.split(',').reverse().join(',') }}</p>
+        <p>{{ reversed }}</p>
+        <p>总价：{{ totalPrice }}</p>
+        <p>姓名：{{ fullName }}</p>
+    </div>
+    <div id="app2">
+        <p>app2的计算属性（依赖 app.text 数据）：{{ reverseText }}</p>
+        <p>{{ nowTime }}</p>
+        <p>{{ now() }}</p>
+    </div>
+    <script>
+        /* 表达式过长会导致代码难以维护，可读性很低，所以可以使用计算属性改写
+         * 计算属性也可以依赖多个 vue 数据，当其中一个发生变化，会重新计算并更新视图，购物车就是个很好的例子
+         * 计算属性会跟随数据的变化即时更新 （其实本质是自动调用了 getter and setter）
+         * 技巧1：计算属性可以依赖其他计算属性
+         * 技巧2：计算属性不仅可以依赖当前 vue 实例的数据， 还可以依赖其他实例的数据
+         * 注意：两个 vue 实例不能绑定在同一个 DOM 上
+         *
+         *
+         *      计算属性的操作一般方法也可以实现 why conputed ？
+         *      因为有计算属性缓存，是要源数据不修改，不是响应式依赖，计算属性就不会更新
+         *      而 methods 的话，每次重新渲染就会被调用一次，所以实际中想不想用缓存从而决定使用哪种方式
+         *
+         */
+        let app = new Vue({
+            el: '#app',
+            data: {
+                text: '123,456',
+                firstName: 'Luo',
+                lastName: 'Jefferson',
+                package1: [
+                    {
+                        name: 'iphone 7',
+                        price: 6999,
+                        count: 2
+                    },
+                    {
+                        name: 'macbook pro',
+                        price: 19999,
+                        count: 1
+                    }
+                ],
+                package2: [
+                    {
+                        name: 'apple',
+                        price: 5,
+                        count: 10
+                    },
+                    {
+                        name: 'banana',
+                        price: 2,
+                        count: 20
+                    }
+                ]
+            },
+            computed: {
+                reversed: function () {
+                    return this.text.split(',').reverse().join(',');
+                },
+                totalPrice: function () {
+                    let price = 0;
+                    for (let i = 0; i < this.package1.length; i++) {
+                        price += this.package1[i].price * this.package1[i].count;
+                    }
+
+                    for (let i = 0; i < this.package2.length; i++) {
+                        price += this.package2[i].price * this.package2[i].count;
+                    }
+                    return price;
+                },
+                // 自己手动触发 getter 和 setter 一般没有必要
+                fullName: {
+                    // getter 外界读取 fullName 时触发
+                    get: function () {
+                        return this.firstName + ' ' + this.lastName;
+                    },
+                    // setter 外界给 fullName 写入时触发
+                    set: function (newValue) {
+                        let names = newValue.split(' ');
+                        this.firstName = names[0];
+                        this.lastName = names[names.length - 1];
+                    }
+                }
+            }
+        });
+
+        let app2 = new Vue({
+            el: '#app2',
+            computed: {
+                reverseText: function () {
+                    // 这里依赖 app 里面的 text 数据
+                    return app.text.split(',').reverse().join(',');
+                },
+                nowTime: function () {
+                    return Date.now();
+                }
+            },
+            methods: {
+                now: function () {
+                    return Date.now();
+                }
+            }
+        })
+    </script>
+</body>
+</html>
