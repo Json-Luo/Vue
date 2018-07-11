@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>指令 v-bind 绑定 class 和 style </title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="normal" :class="{ 'active': isActive, 'error': isError }">对象语法</div>
+        <div :class="computedClass">计算属性返回对象语法</div>
+        <div :class="[activeCls, errorCls]">数组语法</div>
+        <div :class="[isError ? '' : activeCls, errorCls]">简短的三元运算符操纵 class</div>
+        <div :class="[{'active': isActive}, errorCls]">在数组语法中使用对象语法</div>
+        <div :class="mixed">数组、对象、computed 混淆使用</div>
+        <div :style="{'color': color, 'fontSize': fontSize}">对象语法渲染内联样式</div>
+        <div :style="[colors, fontsize]">数组语法渲染内联样式</div>
+        <div :style="[styleA, styleB]">计算属性渲染内联样式</div>
+        <div :style="styleC">vue 数据对象渲染内联样式</div>
+    </div>
+    <script>
+        /* 绑定 class 的几种方式：
+         * 1.对象语法  绑定的 class 与普通的 class 共存，也可以同时绑定多个 class, 甚至可以绑定一个计算属性或类似计算属性的 methods
+         * 2.数组语法  直接指定值 也可以做简单的表达式操作 类似三元运算
+         * 3.多种方式混用 多用于组件复用开发当中
+         *
+         * 绑定内联样式：
+         * 1.对象语法 注意某些属性要使用驼峰式命名 类似 fontSize 渲染出来为 font-size
+         * 2.数组语法 并不常用 数值需要使用对象
+         * 3.写在计算属性中   多为常用  即返回一个对象
+         * 4.直接使用 vue 数据进行渲染
+         */
+        let app = new Vue({
+            el: '#app',
+            data: {
+                isActive: true,
+                isError: true,
+                error: null,
+                activeCls: 'active',
+                errorCls: 'error',
+                size: 'large',
+                disable: true,
+                color: 'red',
+                fontSize: '18px',
+                colors: {color: 'green'},
+                fontsize: {'font-size': '18px'},
+                styleC: {
+                    color: 'yellow',
+                    'font-size': '18px'
+                }
+            },
+            computed: {
+                // methods 类似 只要返回对象就可以了
+                computedClass: function () {
+                    return {
+                        // 带特殊字符的 class 名字需要使用引号
+                        computeClass: this.error && this.error.type === 'fail',
+                        trueClass: this.isActive,
+                        'text-fail': 1
+                    }
+                },
+                mixed: function () {
+                    let className = 'btn-' + this.size;
+                    return [
+                        'btn',
+                        {
+                            // 由于存在拼接运算 所以只能写在一个数组中 或者可以把拼接操作提炼到外面去
+                            // ['btn-' + this.size]: this.size !== '',
+                            className: this.size !== '',
+                            ['btn-disabled']: this.disable
+                            // 等同于 'btn-disabled': this.disable
+                        }
+                    ];
+                },
+                styleA: function () {
+                    return {color: 'blue'};
+                },
+                styleB: function () {
+                    return {'font-size': '18px'}
+                }
+            }
+        });
+    </script>
+</body>
+</html>
