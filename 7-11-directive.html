@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>内置指令</title>
+    <script src="vue-dev.js"></script>
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    {{ message }}
+    <div v-once>{{ once }}</div>
+
+    <p v-if="status === 1">在 status 等于1的时候展示</p>
+    <p v-else-if="status === 2">在 status 等于2的时候展示</p>
+    <p v-else>否则展示该行</p>
+
+    <template v-if="stat === 1">
+        <p>多个元素一起判断，可以在内置的 template 元素上使用条件指令，只是一个容器元素不会被渲染</p>
+        <p>多个元素一起判断，可以在内置的 template 元素上使用条件指令，只是一个容器元素不会被渲染</p>
+        <p>多个元素一起判断，可以在内置的 template 元素上使用条件指令，只是一个容器元素不会被渲染</p>
+    </template>
+
+    <template v-if="type === 'name'">
+        <label>用户名：</label>
+        <input placeholder="输入用户名" key="input-name">
+    </template>
+    <template v-else>
+        <label>邮箱：</label>
+        <input placeholder="输入邮箱" key="input-mail">
+    </template>
+    <button @click="handleClick">切换输入类型</button>
+
+    <p v-show="stat === 2">stat 等于2的时候展示</p>
+
+    <ul>
+        <li>循环渲染 可选参数 index 为索引值</li>
+        <li v-for="(book, index) in books"> {{ ++index }} - {{ book.name }} </li>
+    </ul>
+
+    <ul>
+        <li>多元素渲染，渲染数组对象</li>
+        <template v-for="(people, index) of peoples">
+            <li>{{ index }} - {{ people.name }}</li>
+            <li>{{ index }} - {{ people.age }}</li>
+        </template>
+    </ul>
+
+    <ul>
+        <li> 直接渲染对象 </li>
+        <li v-for="item of inc">{{ item }}</li>
+    </ul>
+    <ul>
+        <li> 渲染对象有可选参数 key 和 value </li>
+        <li v-for="(value, key, index) in inc">{{ index }} - {{ key }} : {{ value }}</li>
+    </ul>
+
+    <ul>
+        <li> 也可以直接渲染数字 </li>
+        <li v-for="i in 10">{{ i }}</li>
+    </ul>
+
+    <ul>
+        <li>filter等替换原数组对象</li>
+        <template v-for="item in book">
+            <li>书名：{{ item.name }}</li>
+            <li>作者：{{ item.author }}</li>
+        </template>
+    </ul>
+
+    <ul>
+        <li> 计算属性过滤名字中含有 vue 的书籍 </li>
+        <template v-for="item of filterBook">
+            <li>书名：{{ item.name }}</li>
+            <li>作者：{{ item.author }}</li>
+        </template>
+    </ul>
+
+    <ul>
+        <li> 计算属性对书名的长短进行排序 </li>
+        <template v-for="item in sortedBook">
+            <li>书名：{{ item.name }}</li>
+            <li>作者：{{ item.author }}</li>
+        </template>
+    </ul>
+
+    点击次数：{{ counter }}
+    <button @click="counter++"> + 1</button>
+    <button @click="handleAdd(10)">+ 10</button>
+
+    <a href="http://www.github.com" @click="handleDis('禁止打开', $event)">Github.com</a>
+</div>
+<script>
+    /* 基本指令
+     * v-cloak: 编译结束后会从绑定的 HTML 上移除，多配合 display：none 来使用，防止网速较慢时 Vue.js文件还没加载时，
+     *          页面直接渲染 '{{message}}' 字样，在工程化项目中不实用，多使用路由挂载不同的组件来渲染内容，无需 v-cloak
+     * v-once: 只会渲染一次，不再随数据的变化而变化，一般被视为静态内容，只有在优化的时候可能会用到
+     *
+     * v-if、v-else-if、v-else:
+     *      v-else-if 要紧跟 v-if, v-else 要紧跟其他两个，如果一次判断多个元素的话，可以使用 vue 内置的 template 元素上使用条件指令
+     *
+     * Vue 在渲染元素时，出于效率，会尽可能的复用已经渲染的元素，切换输入类型的 case 就复用了 input 和 label（input 中的内容不会变）
+     * 如果不想其复用元素可以添加 key 值
+     *
+     * v-show: 控制元素的 diaplay 属性, v-show不能在 template 元素上使用，即不能控制多个元素
+     *         v-if 和 v-show 功能差不多，该使用谁？
+     *         v-if 常用于不频繁变更的场景，因为他的开销大，v-show 常用于频繁变更的场景，因为开销小
+     *
+     * v-for：循环渲染指令，需要配合 in 或者 of 来使用，类似 item in items 的形式，要循环哪个元素就写在哪个元素上
+     *        v-for 还支持一个可选参数作为当前项的索引，v-for 也可以作用于 template 元素上循环渲染多个元素
+     *        除了数组，对象也是可以循环遍历的，在渲染对象的时候有两个可选参数，分别是键和值 key value
+     *        v-for 还可以迭代整数
+     *
+     * 数组更新： push pop shift unshift splice sort reverse 这些函数会改变数组本身从而更新 vue 视图
+     *          filter concat slice 这些函数不会触发 vue 视图更新，他们是返回一个新数组，可以用来替换原数组来更新视图
+     *
+     * 虽然改变 vue 的数组但是 Vue 无法检测到：
+     *          1.通过索引直接设置 e.g. app.book[3] = {...}
+     *          2.修改数组长度 e.g. app.book.length = 1
+     *
+     *          问题1解决方案：
+     *              使用 Vue 的内置方法 Vue.set(app.book, 3, {name: 'xxxx', author: 'xxxxx'});
+     *              使用 splice 来解决 app.book.splice(3, 1, {name: 'xxxx', author: 'xxxxx'});
+     *          问题2解决方案：
+     *              使用 splice 来解决 app.book.splice(1);
+     *
+     *          注解：splice(index, howmany, item1,...,itemX) 此方法不会改变原数组
+     *               index: 必需。整数，规定添加/删除项目的位置，使用负数可从数组结尾处规定位置
+     *               howmany: 必需。要删除的项目数量。如果设置为 0，则不会删除项目
+     *               item: 可选。向数组添加的新项目
+     *
+     * 数组的过滤于排序可以使用 computed 来实现
+     *
+     * 方法与事件：
+     *      Vue 提供了一个特殊变量 $event 用于访问原生 DOM 事件
+     *
+     * 事件修饰符：
+     *      @绑定事件后面可以跟一个修饰符
+     *      .stop:      <a @click.stop='handle'>                阻止单击事件冒泡
+     *      .prevent:   <form @submit.prevent='handle'>         提交事件不再重载页面
+     *      .capture    <div @click.capture='handle'>...</div>  添加事件侦听器时使用事件捕获模式
+     *      .self       <div @click.self='handle'>...</div>     只有当事件在该元素本身触发时触发回调
+     *      .once       <div @click.once='handle'>...</div>     只触发一次，组件同样适用
+     *      注：         <a @click.stop.prevent='handle'>        修饰符可以串联使用
+     *                  <form @submit.prevent>                  也可以只有修饰符没有回调函数
+     *
+     *       <input @keyup.13='submit'>     在 keyCode 等于13的时候调用 vm.submit()
+     *       Vue.config.keyCode.f1 = 112;   全局定义以后，就可以使用 @keyup.f1
+     *       Vue 快捷别名：
+     *          单键使用: .enter .tab .delete .esc .space .up .down .left .right
+     *          组合使用: .ctrl .alt .shift .meta(Command键 or windows花键)
+     *
+     *          <input @keyup.ctrl.83='handleSave'>             ctrl + S
+     *          <div @click.shift='handleSomething'>...</div>   shift + 鼠标点击
+     *
+     */
+    let app = new Vue({
+        el: '#app',
+        data: {
+            message: '这是一段文本',
+            once: '第一次渲染',
+            status: '',
+            stat: 1,
+            type: 'name',
+            books: [
+                {name: 'vue'},
+                {name: 'html'},
+                {name: 'css'},
+            ],
+            peoples: [
+                {name: 'hello', age: '18'},
+                {name: 'tom', age: '19'},
+                {name: 'andy', age: '20'},
+            ],
+            inc: {
+                name: 'jefferson',
+                age: '22',
+                sex: 'male',
+            },
+            book: [
+                {name: 'Vue.js实战', author: 'Asrea'},
+                {name: 'JavaScript实战', author: 'Tom'},
+                {name: 'PHP实战', author: 'Andy'},
+            ],
+            counter: 0
+        },
+        computed: {
+            filterBook: function () {
+                return this.book.filter(function (item) {
+                    return item.name.match(/Vue/);
+                });
+            },
+            sortedBook: function () {
+                return this.book.sort(function (a, b) {
+                    return a.name.length < b.name.length;
+                });
+            }
+        },
+        methods: {
+            handleClick: function () {
+                this.type = this.type === 'name' ? 'email' : 'name';
+            },
+            handleAdd: function (number) {
+                this.counter += number;
+            },
+            handleDis: function (message, e) {
+                // 阻止事件的发生
+                e.preventDefault();
+                alert(message);
+            }
+        }
+    });
+    // app.book = app.book.filter(function (item) {
+    //     // 只保留 name 中含有 javascript 的书，这边改变了 book 数组导致上面的 case 实效 所以注释了此行
+    //     return item.name.match(/JavaScript/);
+    // });
+</script>
+</body>
+</html>
