@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>购物车实战</title>
+    <link rel="stylesheet" href="index.css" type="text/css">
+</head>
+<body>
+    <div id="app" v-cloak>
+        <template v-if="list.length">
+            <table>
+                <thead>
+                    <th>
+                        <input id="all" type="checkbox" @click="selectAll" :checked="selected">
+                        <label for="all">全选</label>
+                    </th>
+                    <th>商品 ID</th>
+                    <th>商品名称</th>
+                    <th>商品单价</th>
+                    <th>商品数量</th>
+                    <th>操作</th>
+                </thead>
+                <tbody>
+                    <template v-for="(item, index) in list">
+                        <tr>
+                            <td><input type="checkbox" :checked="selected"></td>
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.price }}</td>
+                            <td>
+                                <button @click="handleDel(index)" :disabled="item.count === 1">-</button>
+                                {{ item.count }}
+                                <button @click="handleAdd(index)">+</button>
+                            </td>
+                            <td>
+                                <button @click="handleRemove(index)">删除</button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+            <div>商品总价：￥{{ totalPrice }}元</div>
+        </template>
+        <div v-else>购物车为空</div>
+    </div>
+    <script src="../vue-dev.js"></script>
+    <script src="index.js"></script>
+</body>
+</html>
