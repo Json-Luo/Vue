@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>表单与 v-model</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+<div id="app">
+    <input type="text" @input="handleInput" v-model="message"><br>
+
+    <textarea v-model="message" placeholder="初始值" cols="30" rows="10">初始内容</textarea><br>
+    <hr>
+    <h1>表单常规渲染</h1>
+    <input id="sexmale" type="radio" v-model="radioValue" value="male">
+    <label for="sexmale">男</label>
+    <input id="sexfamel" type="radio" v-model="radioValue" value="famel">
+    <label for="sexfamel">女</label>
+    选中项：{{ radioValue }}<br>
+
+    <input type="checkbox" v-model="check" id="checkbox">
+    <label for="checkbox">当前复选框状态： {{ check }}</label><br>
+
+    <input type="checkbox" v-model="box" id="swim" value="swim">
+    <label for="swim">游泳</label>
+    <input type="checkbox" v-model="box" id="read" value="read">
+    <label for="read">读书</label>
+    <input type="checkbox" v-model="box" id="run" value="run">
+    <label for="run">跑步</label>
+    选中项：{{ box }}<br>
+
+    <select v-model="selected">
+        <option>html</option>
+        <option value="js">javascript</option>
+        <option value="css">css</option>
+    </select>
+    选中项：{{ selected }}<br>
+
+    <select v-model="select" multiple>
+        <option value="html">html</option>
+        <option value="js">javascript</option>
+        <option>css</option>
+    </select>
+    选中项：{{ select }}<br>
+
+    <select v-model="book">
+        <option v-for="option in options" :value="option.value">{{ option.text }}</option>
+    </select>
+    选中项：{{ book }}<br>
+    <hr>
+    <h1>动态渲染数据</h1>
+    <input type="radio" v-model="picked" :value="value">
+    <label>单选按钮</label>
+    <p>picked:{{ picked }} value:{{ value }}</p>
+
+    <input type="checkbox" v-model="toggle" :true-value="v1" :false-value="v2">
+    <label>复选按钮</label>
+    <p>toggle:{{ toggle }} v1:{{ v1 }} v2:{{ v2 }}</p>
+
+    <select v-model="bindSelect">
+        <option :value="{ number: 123 }">123</option>
+    </select>
+    {{ bindSelect.number }}
+
+    <hr><h1>修饰符</h1>
+    <input type="text" v-model.lazy="lazyMsg">
+    <p>{{ lazyMsg }}</p>
+    <input type="text" v-model.number="numberMsg">
+    <p>{{ typeof numberMsg }}</p>
+    <input type="text" v-model.trim="strMsg">
+    <p>{{ strMsg }}</p>
+</div>
+<script>
+    /* 只要使用双向绑定 v-model 普通的 html 插值直接无效
+     * v-model 在中文拼音阶段不会更新  想要实时更新可以使用一个 method 来及时更新
+     * e.target.value: e.target指的就是当前 DOM （即当前触发事件的 DOM）而 this 一般指向绑定事件的 DOM
+     * radio 要实现互斥测需要使用 v-model 和 value 来实现, 当 v-model 和 value 一致时 当前项被选中
+     * checkbox 复用的时候，所有选中的数据都会绑定到一个数组对象中，value 值存在于 v-model 的数组中即被选中
+     * select 的 v-model 会优先匹配 option 的 value 值，然后才会去匹配 option 的 text 值
+     * select 多选和 checkbox 多选类似，存在于数组对象中即被选中
+     * 业务中 option 多用 v-for 来循环展示 要使用 vue 实例中的数据必须要 bind 元素（:value）
+     *
+     * ------------- 选中时 v-model 就变成了选中项的 value 值-----------------------------------
+     * 当单选选中的时候 app.picked === app.value
+     * 复选框选中时 app.toggle === app.v1  未选中时 app.toogle ==== app.v2
+     * 当选中时 bindSelect 是一个 Object ， app.bindSelect.number === 123
+     *
+     *
+     * 修饰符：
+     * v-model.lazy:失去焦点时更新
+     * v-model.number:将输入的内容转换成 number 类型
+     * v-model.trim:自动剔除字符串两端的的空格
+     */
+    let app = new Vue({
+        el: '#app',
+        data: {
+            message: '',
+            male: true,
+            famel: false,
+            radioValue: 'male',
+            check: false,
+            box: ['run'],
+            selected: 'html',
+            select: ['js', 'css'],
+            book: 'js',
+            options: [
+                {value: 'html', text: 'HTML5全面指南'},
+                {value: 'js', text: 'Javascript高级程序设计'},
+                {value: 'css', text: 'CSS3权威指导'}
+            ],
+            picked: false,
+            value: 123,
+            toggle: false,
+            v1: 'true-value',
+            v2: 'false-value',
+            bindSelect: '',
+            lazyMsg: '',
+            strMsg: ''
+        },
+        methods: {
+            handleInput: function (e) {
+                this.message = e.target.value;
+            }
+        }
+    });
+</script>
+</body>
+</html>
