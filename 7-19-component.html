@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>组件 component</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+<div id="app">
+    <global-component></global-component>
+    <part-component></part-component>
+    <hr>
+
+    <ul>
+        <li is="global-component"></li>
+        <li is="part-component"></li>
+    </ul>
+    <hr>
+
+    <add-counter></add-counter>
+    <add-counter></add-counter>
+    <add-counter></add-counter>
+    <hr>
+
+    <h3>props 传递数据</h3>
+    <props-component message="父组件的数据" warning-text="警告信息"></props-component>
+
+    <h3>绑定动态数据</h3>
+    <input type="text" v-model="parentText">
+    <props-component :text="parentText"></props-component>
+</div>
+<script>
+    /* 组件基本：
+     * 组件分为全局注册和局部注册，全局注册的话，所有的 vue 实例都能使用，组件名推荐小写加中划线来命名 e.g. my-component
+     * 组件中的 template 中的 DOM 必须被一个元素包含
+     * 组件会受到 HTML 的限制，类似 table ul ol select 里面是不能使用组件的，解决办法就是用 is 来挂在
+     * 组件能使用 vue 实例的 computd methods 等，唯一的区别就是组件的 data 必须是个函数, 组件中的 data 只能在组件中使用
+     * 如果组件 return 的对象是引用了外部的一个对象的话，这个对象就变成共享的，无论哪方改变这个对象都会同步到另一边
+     *
+     * 组件中 props 传递数据：
+     * 一般正向传递数据，即父组件向子组件传递数据使用 props 来实现
+     * 一般 props 的值有两种，字符串数组和对象，正常使用字符串数组写法，如果要对 props 数据进行验证的话就要使用对象写法了
+     */
+    Vue.component('global-component', {
+        template: '<div>global component  {{ message }}</div>',
+        data: function () {
+            return {
+                message: '组件中的数据'
+            }
+        }
+    });
+
+    Vue.component('props-component', {
+        // DOM 中的 warning-text 传递给 props 应转换成 warningText
+        props: ['message', 'warningText', 'text'],
+        template: '<div>{{ warningText + ": " + message + text }}</div>'
+    });
+
+    let partComponent = {
+        template: '<div>part component</div>'
+    };
+
+    let data = {
+        counter: 0
+    };
+
+    let addCounter = {
+        template: '<button @click="counter++">{{ counter }}</button>',
+        data: function () {
+            // return data; 因为使用的外部对象，复用组件的话会相互影响 所以使用单独的内部对象避免影响
+            return {
+                counter: 0
+            }
+        }
+    };
+
+    let app = new Vue({
+        el: '#app',
+        data: {
+            parentText: ''
+        },
+        components: {
+            'part-component': partComponent,
+            'add-counter': addCounter
+        }
+    });
+
+    // props 对象写法  一般用于数据验证
+    Vue.component('props-check', {
+        props: {
+            // 必须是数字类型
+            propsA: Number,
+            // 数字或者字符串类型
+            propsB: [String, Number],
+            // 布尔值  没定义的话给默认值 true
+            propsC: {
+                type: Boolean,
+                default: true
+            },
+            // 数字 必传
+            propsD: {
+                type: Number,
+                required: true
+            },
+            // 数组或者对象的默认值必须要使用函数返回
+            propsE: {
+                type: Array,
+                default: function () {
+                    return [];
+                }
+            },
+            // 自定义一个验证函数
+            propsF: {
+                validator: function (value) {
+                    return value > 10;
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
