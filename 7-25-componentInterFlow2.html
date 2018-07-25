@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>非父子组件之间的通信</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+<div id="app">
+    {{ message }}
+    <button @click="changeChildMsg">修改数据</button>
+    <my-component></my-component>
+    <you-component></you-component>
+    <childrens></childrens>
+    <some-child ref="child"></some-child>
+</div>
+<script>
+    /* 非父子间通信的方法：
+     * 1.先定义一个空的(也可以扩充，公用内容) Vue 对象作为传递事件的中介，这样各个组件只管抛出事件和接受事件即可，传递工作由中介来完成
+     * 2.父链和子组件索引 父链：this.$parent 访问所有父组件  子组件索引：this.$children 列出所有子组件
+     *   实际业务中，通过 this.$children 来获取某一个子组件不现实，因为很多组件是动态渲染的，顺序也不固定，所以 vue 提供了一个别名
+     *   $refs 来定位具体的某一个组件
+     */
+    let bus = new Vue();
+    Vue.component('my-component', {
+        template: '<button @click="handleEvent">传递事件</button>',
+        methods: {
+            handleEvent: function () {
+                 bus.$emit('on-message', '来自组件 my-component 的事件');
+            }
+        }
+    });
+
+    Vue.component('you-component', {
+        template: '<button @click="handleEvent">传递事件</button>',
+        methods: {
+            handleEvent: function () {
+                // 利用中介抛出事件
+                bus.$emit('on-message', '来自组件 you-component 的事件');
+            }
+        }
+    });
+
+    Vue.component('childrens', {
+        template: '<button @click="editMsg">直接修改父组件数据</button>',
+        methods: {
+            editMsg: function () {
+                // 实际业务中不允许直接修改，这样会增加组件之间的耦合
+                this.$parent.message = '子组件 childrens 直接修改父组件的 message';
+            }
+        }
+    });
+
+    Vue.component('some-child', {
+        template: '<div>子组件 some-child 数据: "{{ childMsg }}"</div>',
+        data: function () {
+            return {childMsg: ''}
+        }
+    });
+    let app = new Vue({
+        el: '#app',
+        data: {
+            message: ''
+        },
+        methods: {
+            changeChildMsg: function () {
+                // 通过 $refs 直接修改指定子组件的数据（不推荐，会增加耦合）
+                this.$refs.child.childMsg = '父组件修改了子组件的数据';
+            }
+        },
+        mounted: function () {
+            let _this = this;
+            // 中介监听了事件
+            bus.$on('on-message', function (msg) {
+                _this.message = msg;
+            });
+        }
+    });
+</script>
+</body>
+</html>
