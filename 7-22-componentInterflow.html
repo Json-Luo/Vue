@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>组件通信</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+<div id="app">
+    <p> 总数： {{ total }}</p>
+    <my-com @add="handleGetTotal" @reduce="handleGetTotal"></my-com>
+    <p>v-model 语法糖： {{ vmodel }}</p>
+    <my-com v-model="vmodel"></my-com>
+    <p>自定义双向绑定表单输入组件： {{ other }}</p>
+    <other-com v-model="other"></other-com>
+    <button @click="handleReduce">-1</button>
+</div>
+<script>
+    /* 组件之间的数据通信
+     * props: 父组件提供数据给子组件
+     * 子组件传递数据给父组件使用 $emit() 来触发自定义事件，父组件使用 $on() 来监听子组件的自定义事件
+     */
+    Vue.component('my-com', {
+        template: '\
+        <div>\
+            <button @click="add">+1</button>\
+            <button @click="reduce">-1</button>\
+            <button @click="vmodel">+2</button>\
+        </div>',
+        data: function () {
+            return { counter: 0 };
+        },
+        methods: {
+            add: function () {
+                this.counter++;
+                // 抛出自定义事件 add 并把参数传递给父组件
+                this.$emit('add', this.counter);
+            },
+            reduce: function () {
+                this.counter--;
+                this.$emit('reduce', this.counter);
+            },
+            vmodel: function () {
+                this.counter += 2;
+                // 语法糖： 抛出 input 事件的话  父组件就可以使用 v-model 来实现数据的双向绑定
+                this.$emit('input', this.counter);
+            }
+        }
+    });
+
+    // 实现了子组件的 input 数据与父组件的 other 数据的双向绑定
+    Vue.component('other-com', {
+        props: ['value'],
+        template: '<input :value="value" @input="updateValue">',
+        methods: {
+            updateValue: function (e) {
+                // 使用的语法糖 抛出 input 事件实现 v-model 与父组件的数据双向绑定
+                this.$emit('input', e.target.value);
+            }
+        }
+    });
+
+    let app = new Vue({
+        el: '#app',
+        data: {
+            total: 0,
+            vmodel: 0,
+            other: 0
+        },
+        methods: {
+            // 监听子组件事件 并接收一个子组件抛出的参数
+            handleGetTotal: function (total) {
+                this.total = total;
+            },
+            handleReduce: function () {
+                this.other--;
+            }
+        }
+    });
+</script>
+</body>
+</html>
