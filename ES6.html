@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ES6 学习</title>
+</head>
+<body>
+    <script>
+        /*
+         * 1.变量
+         *      var: 重复定义，函数级作用域
+         *      let: 块级作用域，申明变量，不能重复申明
+         *      const: 块级作用域，申明常量，不能重复申明
+         * 2.箭头函数
+         *      a.方便
+         *          如果只有一个参数，()可以省略
+         *          如果只有一个 return 语句，{}可以省略
+         *      b.修正 this 的问题
+         * 3.函数参数扩展
+         *      ... 收集参数、扩展参数
+         *      默认参数类似 php
+         * 4.数组方法
+         *      map          映射 （对应关系）
+         *      reduce       汇总
+         *      filter       过滤
+         *      forEach      迭代
+         * 5.字符串方法
+         *      startsWith
+         *      endsWith
+         *      字符串模板 `${a}xxxx${b}`
+         * 6.promise 封装异步操作 无逻辑的异步操作使用 promise
+         *      promise.all([
+         *          $.ajax(),
+         *          $.ajax()
+         *      ]).then(results=>{}, err=>{})
+         * 7.generator 有逻辑的异步操作多使用 generator
+         *      let gen = function *show() {
+         *          let a = yield $.ajax();  可以接受参数也可以返回中间值
+         *      }
+         *      gen.next(5);
+         * 8.JSON
+         *      JSON.stringify({a:12, b:5});  => '{"a": 12, "b": 5}' 转成字符串
+         *      JSON.parse('{"a": 12, "b": 5}');  => {a: 12, b: 5}   转成 json 对象
+         * 9.面向对象
+         *      class VipUser extends User {
+         *          constructor(...args) {
+         *              super(...args)          执行父类的构造方法
+         *          }
+         *
+         *          show() {
+         *
+         *          }
+         *      }
+         * 10.结构赋值
+         *      let [a, b, c] = [{a:12, b:5}, [1, 2, 3], 'hello world!'];
+         *      给多个变量赋值
+         *      注意： 右边是个合法的值
+         *            左右结构必须一致
+         *            声明和赋值必须一次性完成
+         */
+    </script>
+</body>
+</html>

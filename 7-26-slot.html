@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>slot 分发内容</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+<div id="app">
+    <!-- 单个 slot -->
+    <child-component>
+        <!-- 这个 P 标签就是父组件的一个 slot 如果没有会自动渲染子组件的 slot -->
+        <p>父组件元素，分发内容</p>
+    </child-component>
+
+    <!-- 具名 slot 可以和单个 slot 共存 -->
+    <name-slot>
+        <h2 slot="header">标题</h2>
+        <p> 正文内容 </p>
+        <p> 更多正文... </p>
+        <div slot="footer">底部信息</div>
+    </name-slot>
+
+    <!-- 作用域插槽 scope 在 vue2.5已经变成 slot-scope  props 只是一个普通变量 -->
+    <area-temp>
+        <template slot-scope="props">
+            <p>父组件的内容</p>
+            <p>{{ props.msg }} - {{ props.num }}</p>
+        </template>
+    </area-temp>
+
+    <!-- 作用域插槽代表性用例 列表组件 -->
+    <my-list :child-books="parentBooks">
+        <!-- 作用域插槽也可以是具名 slot -->
+        <template slot="bookList" slot-scope="books">
+            <li>{{ books.bookName }}</li>
+        </template>
+    </my-list>
+</div>
+<script>
+    /* 编译作用域：
+     * 单个 slot：父组件模板的内容在父组件作用域编译，子组件模板的内容在子组件作用域编译，slot 分发的内容，作用域是在父组件上的
+     * 具名 slot：slot 说白了就是替换父组件的内容，如果子组件没有指定匿名的 slot 父组件对应多余的内容都会被抛弃
+     * 作用域插槽：可以传递子组件 slot 的属性值来渲染父组件
+     * 访问 slot：通过 $slots 来获取，一般在 render 渲染组件中用的比较多
+     */
+    Vue.component('child-component', {
+        template: '\
+        <div>\
+            <slot>\
+                <p>如果父组件没有插入内容，我将默认出现</p>\
+            </slot>\
+        </div>',
+    });
+
+    Vue.component('name-slot', {
+        template: '\
+        <div class="container">\
+            <div class="header">\
+                <slot name="header">\
+                    <h1>子组件默认值</h1>\
+                </slot>\
+            </div>\
+            <div class="main">\
+                <slot>\
+                    <p>单个 slot 默认值，可以与具名 slot 共存</p>\
+                </slot>\
+            </div>\
+            <div class="footer">\
+                <slot name="footer">\
+                    <div> 子组件底部信息默认值 </div>\
+                </slot>\
+            </div>\
+        </div>',
+        mounted: function () {
+            // 获取具名 slot ，没有 name 的则以 default 来访问
+            let header = this.$slots.header;
+            let main = this.$slots.default;
+            let footer = this.$slots.footer;
+            console.log(header, main, footer);
+            console.log(footer[0].elm.innerText);
+        }
+    });
+
+    Vue.component('area-temp', {
+        template: '\
+        <div class="container">\
+            <slot msg="来自子组件的内容" :num="number">\
+                <p>子组件的默认内容{{ number }}</p>\
+            </slot>\
+        </div>',
+        data: function () {
+            return {number: 10};
+        }
+    });
+
+    // 作用域插槽代表性用例就是列表组件
+    Vue.component('my-list', {
+        props: {
+            // 这边写的是子组件绑定的变量，无关父组件变量
+            childBooks: {
+                type: Array,
+                default: function () {
+                    return [];
+                }
+            }
+        },
+        // 作用域插槽，替换具名 slot，循环父组件的 li 标签，如果父组件没有内容则循环子组件默认 slot，
+        // 并暴露一个 bookName 变量给父组件，然后父组件可以随意使用这个变量进行渲染
+        template: '\
+        <ul>\
+            <slot name="bookList" v-for="book in childBooks" :book-name="book.name">\
+                可以写点默认的 slot\
+            </slot>\
+        </ul>'
+    });
+
+    let app = new Vue({
+        el: '#app',
+        data: {
+            parentBooks: [
+                {name: 'HTML'},
+                {name: 'CSS'},
+                {name: 'Javascript'},
+            ]
+        }
+    });
+</script>
+</body>
+</html>
