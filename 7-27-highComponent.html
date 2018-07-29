@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>组件高级用法</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+<div id="app">
+    <!-- 递归组件 -->
+    <child-component :count="count"></child-component>
+
+    <!-- 内联模板 -->
+    <inline-temp inline-template>
+        <div>
+            <h2>在父组件中定义子组件模板</h2>
+            <p>{{ message }}</p>
+            <p>{{ msg }}</p>
+        </div>
+    </inline-temp>
+
+    <!-- 动态组件 -->
+    <component :is="current"></component>
+    <button @click="changeCurrent('A')">A组件</button>
+    <button @click="changeCurrent('B')">B组件</button>
+    <button @click="changeCurrent('C')">C组件</button>
+
+    <!-- 直接绑定一个组件, 数据驱动 DOM 将一个组件赋值给 component 然后再给这个特殊元素渲染出来 -->
+    <component :is="component"></component>
+
+    <!-- 异步更新队列 $nextTick 不能放在异步组件后面 会不显示 -->
+    <p id="nextTick" v-if="showp">这是一段文本</p>
+    <button @click="getText">获取文本内容</button>
+
+    <!-- x-template 组件模板 -->
+    <script type="text/x-template" id="xtemp">
+         <div>这里是x-template组件内容</div>
+    </script>
+    <xtemp></xtemp>
+
+    <!-- 动态挂载 vue 实例 -->
+    <div id="app2"></div>
+
+    <!-- 异步组件 单个闭合标签在使用时会阻止下个组件的出现 -->
+    <cache-component/>
+</div>
+<script>
+    /* 递归组件
+     * 内联模板  inline-template 2.0内联模板已经不支持父组件的变量渲染了
+     * 动态组件  特殊元素 <component :is=""> 动态绑定变量来挂在不同的组件
+     * 异步组件  考虑性能没必要一次性加载所有组件，按需加载
+     * $nextTick 修改数据时，vue 不是立即更新到 DOM 而是放到一个缓存里，去掉重复，在下一个事件循环 tick 中，vue 刷新队列更新 DOM
+     *           即异步更新队列的概念
+     */
+    Vue.component('child-component', {
+        // 设置 name 值以后组件就可以递归使用了，一定要是设置跳出递归的条件
+        name: 'child-component',
+        props: {
+            count: {
+                type: Number,
+                default: 1
+            }
+        },
+        template: `
+        <div class="child">
+            <child-component :count="count + 1" v-if="count < 3"></child-component>
+        </div>`
+    });
+
+    Vue.component('inline-temp', {
+        data: function () {
+            return {
+                msg: '子组件中的 msg',
+                message: '11111'
+            }
+        }
+    });
+
+    let Hello = {
+        template: '<h3>Hello World!</h3>'
+    };
+
+    Vue.component('cache-component', function (resolve, reject) {
+        window.setTimeout(function () {
+            resolve({
+                template: '<div>延迟两秒加载的异步组件，异步加载的条件可以自行设置</div>',
+            });
+        }, 2000);
+    });
+
+    Vue.component('xtemp', {
+        template: '#xtemp'
+    });
+
+    // extend Vue的构造器创建一个子类
+    let mountedCom = Vue.extend({
+        template: '<h1>Hello: {{ name }}</h1>',
+        data() {
+            return {
+                name: 'Jefferson'
+            }
+        }
+    });
+    // 动态挂在 3中方式   一个挂载点不能同时挂载两个 vue 实例
+    // new mountedCom().$mount('#app2');    // new 子类然后挂在
+
+    // new mountedCom({
+    //     el: '#app2'
+    // });
+
+    let component = new mountedCom().$mount();
+    document.getElementById('app2').appendChild(component.$el);
+
+    let app = new Vue({
+        el: '#app',
+        data: {
+            count: 1,
+            message: '父组件中的 message',
+            current: 'comA',
+            component: Hello,
+            showp: false
+        },
+        components: {
+            comA: {
+                template: `<div>组件 A </div>`
+            },
+            comB: {
+                template: `<div>组件 B </div>`
+            },
+            comC: {
+                template: `<div>组件 C </div>`
+            }
+        },
+        methods: {
+            // json 对象中函数简写 以及 字符串模板
+            changeCurrent (item) {
+                this.current = `com${item}`;
+            },
+            getText () {
+                this.showp = true;
+                // 这边虽然更新的 showp 的值，但是不是立马更新到 DOM 中去的，会在下一个循环 tick 中（并去重）去执行，优化性能
+                this.$nextTick(function () {
+                    let text = document.getElementById('nextTick').innerHTML;
+                    console.log(text);
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>
