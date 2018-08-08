@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>自定义指令</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+    <div id="app">
+        <p>
+            小试牛刀
+            <input type="text" v-focus />
+        </p>
+        <p>
+            case1: 查看自定义指令具体参数
+            <div v-test:msg.a.b="message"></div>
+        </p>
+        <p>
+            复杂数据，只要是合法的 javascript 数据类型或者表达式都可以传递给自定义指令
+            <div v-other="info"></div>
+        </p>
+    </div>
+    <script>
+        /* 自定义指令（类似于组件），自定义组件由几个钩子函数组成，每个钩子函数都是可选的
+         *  bind: 只调用一次，指令第一次绑定到元素的时候调用，一般用于定义一个绑定在元素之上的初始化操作
+         *  inserted: 被绑定元素插入父节点时调用（父节点存在即可调用，不必存在于document中）
+         *  update: 被绑定元素所在模板更新时调用，而不论绑定值是否变化，可以通过比较绑定值来减少不必要的模板更新
+         *  unbind: 只调用一次，指令与元素解绑时调用
+         *  每个钩子函数都有几个参数可以使用
+         *  el: 所绑定的元素，可以用来直接操作DOM
+         *  binding: 一个对象，包含以下属性
+         *      name: 指令名称（不包含 v- ）
+         *      value: 指令的绑定值 （v-my-directive='1 + 1'， value 即为 2）
+         *      oldValue: 指令绑定的前一个值，仅在 update 和 componentUpdated 钩子中可用， 无论值是否改变都可用
+         *      expression: 绑定值的字符串形式 （v-my-directive='1 + 1'， expression 即为 '1 + 1'）
+         *      arg: 传递给指令的参数 （v-my-directive:foo  arg 即为 foo）
+         *      modifiers: 一个包含修饰符的对象 （ v-my-directive.foo.bar  modifiers 即为 {foo: true, bar: true} ）
+         *  vnode: Vue 编译生成的虚拟节点
+         *  oldVnode: 上一个虚拟节点，仅在 update 和 componentUpdated 钩子中使用
+         *
+         *  注：一般都是在 bind 中添加一些事件绑定 addEventListener  在 unbind 里解除事件绑定 removeEventListener
+         */
+        Vue.directive('focus', {
+            // 全局注册自定义指令， 指令选项
+            inserted (el) {
+                // 当元素被插入父节点时自动聚焦
+                el.focus();
+            },
+            bind (el) {
+                // 绑定时自动调用 一般用于初始化操作
+                el.value = '初始化 value';
+            }
+        });
+
+        Vue.directive('test', {
+            bind (el, binding, vnode) {
+                let keys = [];
+                for (let i in vnode) {
+                    keys.push(i);
+                }
+
+                el.innerHTML = `
+                name:   ${binding.name}<br>
+                value:  ${binding.value}<br>
+                expression: ${binding.expression}<br>
+                argument:   ${binding.arg}<br>
+                modifiers:  ${JSON.stringify(binding.modifiers)}<br>
+                vnode keys: ${keys.join(", ")}`;
+            }
+        });
+
+        Vue.directive('other', {
+            bind (el, binding) {
+                console.log(binding.value.name);
+                console.log(binding.value.age);
+            }
+        });
+
+        let app = new Vue({
+            el: '#app',
+            data: {
+                message: 'some text',
+                info: {'name': 'JeffersonLuo', 'age': 18}
+            }
+            // directives: {
+            //     focus: {
+            //         // 局部注册指令，指令选项
+            //     }
+            // }
+        });
+    </script>
+</body>
+</html>
