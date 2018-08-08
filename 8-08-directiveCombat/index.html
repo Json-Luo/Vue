@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>可从外部关闭的下拉菜单</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body>
+    <div id="app" v-cloak>
+        <div class="main" v-clickoutside="handleClose">
+            <button @click="show = !show">点击显示下拉菜单</button>
+            <div class="dropdown" v-show="show">
+                <p>下拉菜单的内容，点击其他区域消失</p>
+            </div>
+        </div>
+    </div>
+    <script src="../vue-dev.js"></script>
+    <script src="clickOutSide.js"></script>
+    <script src="index.js"></script>
+</body>
+</html>
