@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>虚拟 DOM - Render 函数</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+<div id="app">
+    <anchor :level="2" title="特性">特性</anchor>
+</div>
+<script>
+    /*
+     * Vue使用的虚拟 DOM 的技术来实现 DOM 更新
+     * Virtual DOM 顾名思义，不是真实的 DOM，其实是一个 js 对象，Virtual DOM 会进行 Diff 操作，只更新变化的 DOM，减少开销
+     * 执行过程：
+     *  Object ---> render ---> createdElement ---> diff ---> patch
+     *  检测变化 --> 生成虚拟 DOM --> 基于虚拟节点创建 DOM --> 差异对比生成补丁 --> 遍历补丁更新 DOM
+     *
+     *  VNode 对象：
+     *  export interface VNode {
+     *      tag ?: string;                              当前节点的标签名
+     *      data ?: VNodeData;                          当前节点的数据对象
+     *      children ?: VNode[];                        子节点，数组，也是 VNode 类型
+     *      text ?: string;                             当前节点的文本
+     *      elm ?: Node;                                当前虚拟节点对应的真实 DOM 节点
+     *      ns ?: string;                               节点的 namespace
+     *      context ?: Vue;                             编译作用域
+     *      functionalContext ?:     ;                  函数化组件的作用域
+     *      key ?: string | number;                     节点的 key 属性，作为节点的标识，有利于 patch 优化
+     *      componentOptions ?: VNodeComponentOptions;  创建组件实例时会用到的选项信息
+     *      componentInstance ?: Vue;
+     *      child ?:   ;                                当前节点对应的组件实例
+     *      parent ?: VNode;                            组件的占位节点
+     *      raw ?: boolean;                             原始 html
+     *      isStatic ?: boolean;                        静态节点的标识
+     *      isRootInsert ?: boolean;                    是否作为根节点插入，被<transition>包裹的节点，该属性为 false
+     *      isComment ?: boolean;                       当前节点是否是注释节点
+     *      isCloned ?: boolean;                        当前节点是否为克隆节点
+     *      isOnce ?: boolean;                          当前节点是否有 v-once 指令
+     *  }
+     *
+     *  VNode 分为几大类：
+     *      TextVNode:      文本节点
+     *      ElementVNode:   普通元素节点
+     *      ComponentVNode: 组件节点
+     *      EmptyVNode:     没有内容的注释节点
+     *      CloneVNode:     克隆节点
+     *
+     *  VNodeData 对象：
+     *  export interface VNodeData {
+     *      key ?: string | number;
+     *      slot ?: string;
+     *      scopedSlots ?: { [key: string]: ScopedSlot };
+     *      ref ?: string;
+     *      tag ?: string;
+     *      staticClass ?: string;
+     *      class ?: any;
+     *      staticStyle ?: { [key: string]: any };
+     *      style ?: Object[] | Object;
+     *      props ?: { [key: string]: any };
+     *      attrs ?: { [key: string]: any };
+     *      domProps ?: { [key: string]: any };
+     *      hook ?: { [key: string]: Function };
+     *      on ?: { [key: string]: Function | Function[] };
+     *      nativeOn ?: { [key: string]: Function | Function[] };
+     *      transition ?: Object;
+     *      show ?: boolean;
+     *      inlineTemplate ?: {
+     *          render: Function;
+     *          staticRenderFns: Function[];
+     *      };
+     *      directives ?: VNodeDirective[];
+     *      keepAlive ?: boolean;
+     *  }
+     */
+
+    // render 初体验
+    Vue.component('anchor', {
+        props: {
+            level: {
+                type: Number,
+                required: true
+            },
+            title: {
+                type: String,
+                default: ''
+            }
+        },
+        // 用 render 替换 template 做到灵活的创建 dom
+        render (createElement) {
+            return createElement(
+                'h' + this.level,
+                [
+                    createElement('a', {
+                        domProps: {href: '#' + this.title}
+                    }, this.$slots.default)
+                ]
+            );
+        }
+    });
+
+    let app = new Vue({
+        el: '#app'
+    });
+</script>
+</body>
+</html>
