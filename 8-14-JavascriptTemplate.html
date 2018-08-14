@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Javascript 代替模板功能</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+    <div id="app">
+        <vif :show="show"></vif>
+        <button @click="show = !show">切换 show</button>
+
+        <vfor :list="list"></vfor>
+
+        <vclickfor :list="clickList"></vclickfor>
+        <button @click="handleClick">显示列表</button>
+
+        <vmodel></vmodel>
+        <br>
+
+        <chatroom></chatroom>
+        <br>
+
+        <default-slot>
+            <p>slot的内容</p>
+        </default-slot>
+    </div>
+    <script>
+        /* 按键修饰符所对应的句柄
+         * +-------------------------+----------------------------------------------------
+         * |.stop                    | event.stopPropagation()
+         * |.prevent                 | event.preventDefault()
+         * |.self                    | if (event.target !== event.currentTarget) return...
+         * |.enter .13               | if (event.keyCode !== 13) return...
+         * |.ctrl .alt .shift .meta  | e.g. if (!event.ctrlKey) return...
+         * +-------------------------+----------------------------------------------------
+         *
+         * 事件修饰符 (Vue 提供了特殊前缀，可以直接写在 on 配置中)
+         * +--------------------------------+-----------------
+         * | .capture                       | !
+         * | .once                          | ~
+         * | .once.capture || .capture.once | ~!
+         * +--------------------------------+------------------
+         * e.g.
+         *  on: {
+         *      '!click': this.doThisInCapturingMode,
+         *      '~keyup': this.doThisOnce,
+         *      '~!mouseover': this.doThisOnceInCapturingMode
+         *  }
+         *
+         */
+
+        // v-if 的 render 实现
+        Vue.component('vif', {
+            render (createElement) {
+                // 相当于模板指令 V-if
+                if (this.show) {
+                    return createElement('p', 'show的值为true');
+                } else {
+                    return createElement('p', 'show的值为false');
+                }
+            },
+            props: {
+                show: {
+                    type: Boolean,
+                    default: false
+                }
+            }
+        });
+        // v-for 的 render 实现
+        Vue.component('vfor', {
+            // 相当于 v-for 模板指令
+            render (createElement) {
+                let nodes = [];
+                for (let i = 0; i < this.list.length; i++) {
+                    nodes.push(createElement('li', this.list[i]));
+                }
+                return createElement('ul', nodes);
+            },
+            props: {
+                list: {
+                    type: Array,
+                    default: [
+                        'Angular',
+                        'React',
+                        'Vue'
+                    ]
+                }
+            }
+        });
+        Vue.component('vclickfor', {
+            render (createElement) {
+                if (this.list.length) {
+                    return createElement('ul', this.list.map(item => createElement('li', item)));
+                } else {
+                    return createElement('p', '暂无列表');
+                }
+            },
+            props: {
+                list: {
+                    type: Array,
+                    default: []
+                }
+            }
+        });
+        // v-model 的 render 实现
+        // 实际就是 prop: value 和 event: input 组合使用的语法糖
+        Vue.component('vmodel', {
+            render (createElement) {
+                let _this = this;
+                return createElement('div', [
+                    createElement('input', {
+                        domProps: {
+                            // 将 this.value 赋值给 input 的 value
+                            value: this.value
+                        },
+                        on: {
+                            // 当 input 输入时，将输入的内容赋值给 this.value
+                            input (event) {
+                                _this.value = event.target.value;
+                            }
+                        }
+                    }),
+                    createElement('p', 'value: ' + this.value)
+                ]);
+            },
+            data () {
+                return {
+                    value: ''
+                }
+            }
+        });
+        // 事件修饰符和按键修饰符模拟聊天室
+        Vue.component('chatroom', {
+            render (createElement) {
+                let _this = this, listNode = '';
+                // 渲染聊天内容列表
+                if (this.list.length) {
+                    listNode = createElement('ul', this.list.map(item => createElement('li', item)));
+                } else {
+                    listNode = createElement('p', '暂无聊天记录');
+                }
+                return createElement('div', [
+                    listNode,
+                    createElement('input', {
+                        attrs: {
+                            placeholder: '输入内容，按回车键发送'
+                        },
+                        style: {
+                            width: '200px'
+                        },
+                        on: {
+                            keyup (event) {
+                                // 如果不是回车键不发送信息
+                                if (event.keyCode !== 13) return;
+                                // 添加输入信息到聊天记录 并清空输入框
+                                let inputValue = event.target.value.trim();
+                                if (inputValue.length > 0 && inputValue !== '') {
+                                    _this.list.push(event.target.value);
+                                }
+                                event.target.value = '';
+                            }
+                        }
+                    })
+                ]);
+            },
+            data () {
+                return {
+                    value: '',
+                    list: []
+                }
+            }
+        });
+        // render 函数中会大量使用 $slot 但是当没有 slot 的时候，使用一些默认值
+        Vue.component('default-slot', {
+            render (createElement) {
+                if (this.$slots.default === undefined) {
+                    return createElement('div', '没有默认的 slot 时显示此文本');
+                } else {
+                    return createElement('div', [
+                        this.$slots.default,
+                        createElement('button', {
+                            on: {
+                                // click.once 只生效一次
+                                '~click': function () {
+                                    // _this.$slots.default = null;  todo: 有问题
+                                    console.log(this);
+                                }
+                            }
+                        }, '点击清除默认slot')
+                    ]);
+                }
+            }
+        });
+
+
+        let app = new Vue({
+            el: '#app',
+            data: {
+                show: true,
+                list: [
+                    'HTML',
+                    'CSS',
+                    'Javascript'
+                ],
+                clickList: []
+            },
+            methods: {
+                handleClick () {
+                    this.clickList = [
+                        'aaa',
+                        'bbb',
+                        'ccc'
+                    ];
+                }
+            }
+        })
+    </script>
+</body>
+</html>
