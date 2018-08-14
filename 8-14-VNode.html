@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>createElement VNode 约束</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+    <div id="app">
+        <case-one></case-one>
+        <br>
+
+        <case-two>
+            <div>
+                <Child></Child>
+            </div>
+        </case-two>
+        <br>
+
+        <correct-component></correct-component>
+        <br>
+
+        <correct-slot>
+            <div>
+                <Child></Child>
+            </div>
+        </correct-slot>
+    </div>
+    <script>
+        /* 如果 VNode 是组件或者是含有组件的 slot ， 那么 VNode 必须是唯一( 不能同时出现两次？ )的
+         *
+         */
+
+        // 错误case 1：重复使用组件 企图创建两个 p 标签， 标签内容为 text todo: 实际正常??
+        let Child = {
+            render (createElement) {
+                return createElement('p', 'text');
+            }
+        };
+        Vue.component('case-one', {
+            render (createElement) {
+                // 创建一个子节点
+                let childNode = createElement(Child);
+                return createElement('div', [
+                    childNode,
+                    childNode
+                ]);
+            }
+        });
+        // 错误 case 2：重复使用含有组件的 slot todo: 实际正常??
+        Vue.component('case-two', {
+            render (createElement) {
+                return createElement('div', [
+                    this.$slots.default,
+                    this.$slots.default
+                ]);
+            }
+        });
+
+        // 重复使用组件的正确做法   新建一个空数组然后循环映射 Child 进去
+        Vue.component('correct-component', {
+            render (createElement) {
+                return createElement('div',
+                    // Array.apply(null, {length: 5}) length 是特殊字段  生成一个长度为5的数组，没有赋值所以都是 undefined
+                    // Array.apply(null, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', length: 5});  ['a', 'b', 'c', 'd', 'e']
+                    // map 函数 类似于 php 的 array_map 函数
+                    Array.apply(null, {
+                        length: 5
+                    }).map(() => createElement(Child))
+                );
+            }
+        });
+
+        // 重复使用含有组件的 slot 正确用法  todo: = = 没看明白
+        Vue.component('correct-slot', {
+            render (createElement) {
+                // 克隆 slot 节点的方法
+                function cloneVNode(vnode) {
+                    // 递归遍历所有子节点并克隆 并对关键属性也进行复制
+                    const clonedChildren = vnode.children && vnode.children.map(vnode => cloneVNode(vnode));
+                    const cloned = createElement(
+                        vnode.tag,
+                        vnode.data,
+                        clonedChildren
+                    );
+                    // 克隆关键属性
+                    cloned.text = vnode.text;
+                    cloned.isComment = vnode.isComment;
+                    cloned.componentOptions = vnode.componentOptions;
+                    cloned.elm = vnode.elm;
+                    cloned.context = vnode.context;
+                    cloned.ns = vnode.ns;
+                    cloned.isStatic = vnode.isStatic;
+                    cloned.key = vnode.key;
+
+                    return cloned;
+                }
+
+                const vNodes = this.$slots.default;
+                const clonedVNodes = vNodes.map(vnode => cloneVNode(vnode));
+
+                return createElement('div', [vNodes, clonedVNodes]);
+            }
+        });
+
+        let app = new Vue({
+            el: '#app',
+            components: {
+                'Child': Child
+            }
+        })
+    </script>
+</body>
+</html>
