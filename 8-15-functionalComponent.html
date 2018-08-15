@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>函数化组件</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+    <div id="app">
+        <smart-item :data="data"></smart-item>
+        <button @click="change('img')">切换为图片组件</button>
+        <button @click="change('video')">切换为视频组件</button>
+        <button @click="change('text')">切换为文本组件</button>
+    </div>
+    <script>
+        /* Vue.js 提供了一个 functional 的布尔值选项，设置为 true 的时候可以使组件无状态和无实例，也就是没有 data 和 this 上下文，
+         * 这样使用 render 函数更容易渲染，渲染开销也最小
+         *
+         * 函数化组件时，render 提供了第二个参数 context 来临时提供上下文，组件需要的 data、props、slots、children、parent 都可以
+         * 通过此参数来传递，e.g. this.level === context.props.level  this.$slot.default === context.children
+         *
+         * 函数化组件在业务中不常见，而且有其他实现方式，可以使用 is 特性来动态挂载
+         * 使用场景：
+         *      1. 程序化的在多个组件中选择一个
+         *      2. 在将 children、props、data 传递给子组件之前操作他们
+         */
+        // 图片组件
+        let ImgItem = {
+            props: ['data'],
+            render (createElement) {
+                return createElement('div', [
+                    createElement('p', '图片组件'),
+                    createElement('img', {
+                        attrs: {
+                            src: this.data.url
+                        }
+                    })
+                ]);
+            }
+        };
+        // 视频组件
+        let VideoItem = {
+            props: ['data'],
+            render (createElement) {
+                return createElement('div', [
+                    createElement('p', '视频组件'),
+                    createElement('video', {
+                        attrs: {
+                            src: this.data.url,
+                            controls: 'controls',
+                            aotuplay: 'autoplay'
+                        }
+                    })
+                ]);
+            }
+        };
+        // 纯文本组件
+        let TextItem = {
+            props: ['data'],
+            render (createElement) {
+                return createElement('div', [
+                    createElement('p', '纯文本组件'),
+                    createElement('p', this.data.text)
+                ]);
+            }
+        };
+
+        Vue.component('smart-item', {
+            // 函数化组件
+            functional: true,
+            // 第二个参数是临时上下文参数
+            render (createElement, context) {
+                // 根据传入的数据，只能判断显示哪种组件
+                function getComponent() {
+                    let data = context.props.data;
+                    if (data.type === 'img') {
+                        return ImgItem;
+                    } else if (data.type === 'video') {
+                        return VideoItem;
+                    } else {
+                        return TextItem;
+                    }
+                }
+                return createElement(
+                    getComponent(),
+                    {
+                        props: {
+                            // 把 smart-item 的 prop: data 传递给 getComponent 函数
+                            data: context.props.data
+                        }
+                    },
+                    context.children
+                );
+            },
+            props: {
+                // 相当于将这个 data 传递给 getComponent 函数
+                data: {
+                    type: Object,
+                    required: true
+                }
+            }
+        });
+
+        let app = new Vue({
+            el: '#app',
+            data: {
+                data: {}
+            },
+            methods: {
+                change (type) {
+                    if (type === 'img') {
+                        this.data = {
+                            type: 'img',
+                            url: 'https://raw.githubusercontent.com/iview/iview/master/assets/logo.png'
+                        }
+                    } else if (type === 'video') {
+                        this.data = {
+                            type: 'video',
+                            url: 'http://vjs.zencdn.net/v/oceans.mp4'
+                        }
+                    } else {
+                        this.data = {
+                            type: 'text',
+                            content: '这是一段纯文本'
+                        }
+                    }
+                }
+            },
+            created () {
+                // Vue 初始化钩子函数 默认是图片组件
+                this.change('img');
+            }
+        });
+    </script>
+</body>
+</html>
