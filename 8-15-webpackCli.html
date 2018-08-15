@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Webpack 工程化前置知识</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+<div id="app">
+    
+</div>
+<script>
+    /* 介绍 webpack 使用之前，先介绍 ES6 中 export 和 import 的使用，后面会大量使用到
+     * export 和 import 是用来导出和导入模块的，一个模块就是一个 js 文件，拥有独立的作用域
+     * e.g.
+     * // config.js
+     * var Config = {
+     *      version: '1.0.0'
+     * }
+     * export { Config };
+     * // 或者 config.js
+     * export var Config = {
+     *      version: '1.0.0'
+     * }
+     * // 其他类型(比如函数、数组、常量等)也可以导出，比如导出一个函数
+     * // add.js
+     * export function add(a, b) {
+     *      return a + b;
+     * }
+     *
+     * // 模块导出之后，在需要使用模块文件的时候要使用 import 导入
+     * // main.js
+     * import { Config } from './Config.js';
+     * import { add } from './add.js';
+     *
+     * console.log(Config);     // { version: '1.0.0' }
+     * console.log(add(1, 1));  // 2
+     *
+     * 以上几个实例中，导入模块的名称都是在 export 的文件中设置的，也就是用户必须先知道这个模块的名称，比如 Config、add
+     * 有时用户不想知道模块名称、或者想自定义模块名称，此时可以使用 export default 来输出默认模块
+     * e.g.
+     * 如果使用 npm 安装了一些库，在 webpack 中直接导入,分别导入 Vue 和 jQuery，并且重命名为 Vue 和 $
+     * import Vue from 'vue';
+     * import $ from 'jquery';
+     *
+     */
+    let app = new Vue({
+        el: '#app',
+        data: {}
+    });
+</script>
+</body>
+</html>
