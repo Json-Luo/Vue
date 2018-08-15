@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JSX 语法</title>
+    <script src="vue-dev.js"></script>
+</head>
+<body>
+    <div id="app">
+
+    </div>
+    <script>
+        /* render 最不友好的地方就是在模板很简单时写起来也很复杂
+         * e.g.
+         * 使用 template 写法
+         *  <Anchor :level="1">
+         *      <span>一级</span>标题
+         *  </Anchor>
+         *
+         * 使用 createElement 写法
+         *  return createElement('Anchor', {
+         *      props: {
+         *          level: 1
+         *      },
+         *  }, [
+         *      createElement('span', '一级'), '标题'
+         *  ])
+         *
+         * 为了让 render 函数更好的书写和阅读，Vue.js 提供了 babel-plugin-transform-vue-jsx 来支持 JSX 语法 (需要使用 webpack 来编译)
+         * 使用 JSX 改写之后
+         * new Vue(
+         *      el: '#app',
+         *      render (h) {
+         *          return (
+         *              <Anchor level={1}>
+         *                  <span>一级</span>标题
+         *              </Anchor>
+         *          )
+         *      }
+         * )
+         *
+         * createElement 常用配置：
+         * render (createElement) {
+         *      return createElement('div', {
+         *          props: {
+         *              text: 'some text'
+         *          },
+         *          attrs: {
+         *              id: 'my-div'
+         *          },
+         *          domProps: {
+         *              innerHTML: 'content'
+         *          },
+         *          on: {
+         *              change: this.changeHandler
+         *          },
+         *          nativeOn: {
+         *              click: this.clickHandler
+         *          },
+         *          class: {
+         *              show: true,
+         *              on: false
+         *          },
+         *          style: {
+         *              color: '#fff',
+         *              background: '#fff'
+         *          },
+         *          key: 'key',
+         *          ref: 'element',
+         *          refInFor: true,
+         *          slot: 'slot'
+         *      })
+         * }
+         * 转换成 JSX 语法格式
+         * render (h) {
+         *      return (
+         *          <div
+         *              id='my-div'
+         *              domPropsInnerHTML='content'
+         *              onChange={this.changeHandler}
+         *              nativeOnClick={this.clickHandler}
+         *              class={{show: true, on: false}}
+         *              style={{color: '#fff', background: '#fff'}}
+         *              key='key'
+         *              ref='element'
+         *              refInFor
+         *              slot='slot'
+         *          >
+         *          </div>
+         *      )
+         * }
+         */
+        let app = new Vue({
+            el: '#app',
+        });
+    </script>
+</body>
+</html>
