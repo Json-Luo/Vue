@@ -34,6 +34,7 @@
  *    --progress            查看打包过程
  *    --display-modules     列出所有引用的打包模块（使用哪些 loader 处理也会列出来）
  *    --display-reasons     列出为什么要去打包这个模块的原因
+ *    --colors              打包字体彩色显示
  *
  */
 
