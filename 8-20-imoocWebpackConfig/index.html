@@ -2,9 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Webpack Config</title>
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <script src="bundle.js"></script>
+    <!-- 通过 htmlWebpackPlugin 的内置属性，我们可以把任何 js 文件放在任何我们想放的地方 -->
+    <script src="<%= htmlWebpackPlugin.files.chunks.main.entry %>"></script>
 </head>
 <body>
-<script src="./dist/js/bundle.js"></script>
+<%= htmlWebpackPlugin.options.date %>
+<!-- 遍历 htmlWebpackPlugin 获得两大子属性 options and files -->
+<% for (var key in htmlWebpackPlugin) { %>
+    <%= key %>
+<% } %>
+<!-- 遍历 htmlWebpackPlugin 的子属性 options -->
+<% for (var key in htmlWebpackPlugin.options) { %>
+    <%= 'options: ' + key %> => <%= JSON.stringify(htmlWebpackPlugin.options[key]) %>
+<% } %>
+<!-- 遍历 htmlWebpackPlugin 的子属性 files -->
+<% for (var key in htmlWebpackPlugin.files) { %>
+    <%= 'files:' + key %> => <%= JSON.stringify(htmlWebpackPlugin.files[key]) %>
+<% } %>
+
+<script src="<%= htmlWebpackPlugin.files.chunks.body.entry %>"></script>
 </body>
 </html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <!-- 由于 main 是公共的，所以我们可以将 main.js 直接写入这里来提高性能 -->
+    <script type="text/javascript">
+        // 默认是带有 publicPath 的，而我们需要的是不带 publicPath 的，然后通过 compilation.assets[].source() 直接读取 chunks 的内容
+        <%= compilation.assets[htmlWebpackPlugin.files.chunks.main.entry.substr(htmlWebpackPlugin.files.publicPath.length)].source() %>
+    </script>
+</head>
+<body>
+    <!-- 我是注释：注释是不需要 loader 的 -->
+    <!-- 写一个通用的模板来加载各自不同的 chunk -->
+    <% for (var k in htmlWebpackPlugin.files.chunks) { %>
+        <% if (k !== 'main') { %>
+            <script src="<%= htmlWebpackPlugin.files.chunks[k].entry %>"></script>
+        <% } %>
+    <% } %>
+</body>
+</html>
