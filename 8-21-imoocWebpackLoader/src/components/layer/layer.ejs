@@ -1,0 +1,10 @@
+<div class="layer">
+    <!-- 这样使用相对路径是有问题的 <img src="../../assets/face.png" alt=""> -->
+    <img src="${ require('../../assets/face.png') }" alt="">
+    <h3><%= name %></h3>
+    <div>
+        <% for (var i = 0; i < arr.length; i++) { %>
+            <%= arr[i] %> <br />
+        <% } %>
+    </div>
+</div>
