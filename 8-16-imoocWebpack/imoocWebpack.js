@@ -12,6 +12,33 @@
  * 2. npm init    初始化 npm
  * 3. npm install webpack --save-dev   本地局部安装 webpack
  *
+ * 关于 npm 安装依赖包
+ * npm install moduleName 命令
+ * 1. 安装模块到项目node_modules目录下。
+ * 2. 不会将模块依赖写入devDependencies或dependencies 节点。
+ * 3. 运行 npm install 初始化项目时不会下载模块。
+ *
+ * npm install -g moduleName 命令
+ * 1. 安装模块到全局，不会在项目node_modules目录中保存模块包。
+ * 2. 不会将模块依赖写入devDependencies或dependencies 节点。
+ * 3. 运行 npm install 初始化项目时不会下载模块。
+ *
+ * npm install -save moduleName 命令
+ * 1. 安装模块到项目node_modules目录下。
+ * 2. 会将模块依赖写入dependencies 节点。
+ * 3. 运行 npm install 初始化项目时，会将模块下载到项目目录下。
+ * 4. 运行npm install --production或者注明NODE_ENV变量值为production时，会自动下载模块到node_modules目录中。
+ *
+ * npm install -save-dev moduleName 命令
+ * 1. 安装模块到项目node_modules目录下。
+ * 2. 会将模块依赖写入devDependencies 节点。
+ * 3. 运行 npm install 初始化项目时，会将模块下载到项目目录下。
+ * 4. 运行npm install --production或者注明NODE_ENV变量值为production时，不会自动下载模块到node_modules目录中。
+ *
+ * 总结
+ * devDependencies 节点下的模块是我们在开发时需要用的，比如项目中使用的 gulp ，压缩css、js的模块。这些模块在我们的项目部署后是不需要的，所以我们可以使用 -save-dev 的形式安装。
+ * 像 express 这些模块是项目运行必备的，应该安装在 dependencies 节点下，所以我们应该使用 -save 的形式安装。
+ *
  * 使用 webpack
  * 1. webpack imoocWebpack.js -o bundle.js --mode development
  *    将本文件打包成 bundle.js   -o 输出文件  --mode development 指定开发环境，由于性能问题，默认是 production 默认压缩代码
