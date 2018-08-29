@@ -1,0 +1,32 @@
+@charset "utf-8";
+// less 中的注释有两种，传统 css 的注释会被编译保留，而 // 的内容不会被编译保留
+body {
+  background: gray;
+}
+
+// 变量 @符号声明变量
+@test-with: 300px;
+.box {
+  width: @test-with;
+  height: @test-with;
+  background: yellow;
+  // 这就是混合，之前的 css 可以直接拿来使用
+  .border;
+}
+
+// 混合
+.border {
+  border: 5px solid pink;
+}
+// 带参数的混合 带默认参数
+.borderVar(@border-width:200px, @style:solid, @color:pink) {
+  border: @border-width @style @color;
+}
+
+
+.rbox {
+  .box;
+  // 直接拿 box 的样式过来使用，唯一的区别属性只要重新写就好了
+  margin-left: 100px;
+  .borderVar(100px, solid, green)
+}
